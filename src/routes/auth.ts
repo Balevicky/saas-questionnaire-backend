@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { authenticateJWT, AuthRequest } from "../middleware/auth";
+import { log } from "console";
 
 dotenv.config();
 
@@ -33,9 +34,11 @@ function getRefreshTokenExpiry(days: number = 7): Date {
  * ============================
  */
 router.post("/:tenant/auth/signup", async (req: Request, res: Response) => {
+  // router.post("/signup", async (req: Request, res: Response) => {
   try {
     const { tenantName, tenantSlug, email, password, fullname } = req.body;
-
+    const tenantSlugs = req.params.tenant;
+    console.log("req.params:" + req.params);
     if (!tenantName || !tenantSlug || !email || !password) {
       return res.status(400).json({ error: "Champs manquants" });
     }
@@ -111,10 +114,14 @@ router.post("/:tenant/auth/signup", async (req: Request, res: Response) => {
  * LOGIN
  * ============================
  */
+// router.post("/login", async (req: Request, res: Response) => {
+//localhost:4000/api/boli/auth/login
 router.post("/:tenant/auth/login", async (req: Request, res: Response) => {
-  try {
+  http: try {
     const { email, password } = req.body;
     const tenantSlug = req.params.tenant;
+    console.log("req.params:" + req.params);
+    console.log("tenantSlug:" + tenantSlug);
 
     const tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug },
@@ -166,7 +173,8 @@ router.post("/:tenant/auth/login", async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Erreur login:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    // res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: error });
   }
 });
 
@@ -176,6 +184,7 @@ router.post("/:tenant/auth/login", async (req: Request, res: Response) => {
  * ============================
  */
 router.post("/:tenant/auth/refresh", async (req: Request, res: Response) => {
+  // router.post("/refresh", async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
   const tenantSlug = req.params.tenant;
 
@@ -247,6 +256,7 @@ router.post(
   "/:tenant/auth/logout",
   authenticateJWT,
   async (req: AuthRequest, res: Response) => {
+    // router.post("/logout",authenticateJWT,async (req: AuthRequest, res: Response) => {
     const { refreshToken } = req.body;
     if (!refreshToken)
       return res.status(400).json({ error: "refreshToken manquant" });

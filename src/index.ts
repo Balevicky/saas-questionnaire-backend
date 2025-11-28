@@ -16,10 +16,12 @@ app.use(express.json());
 
 // Routes publiques
 app.use("/api", authRoutes);
+app.use("/api/:tenant/auth", authRoutes);
+//localhost:4000/api/boli/auth/login
 // app.use("/:tenant/auth", authRoutes);
 
 // Routes protégées
-app.use("/api/regions", authenticateJWT, regionRoutes);
+http: app.use("/api/regions", authenticateJWT, regionRoutes);
 app.use("/api/departments", authenticateJWT, departmentRoutes);
 app.use("/api/sectors", authenticateJWT, sectorRoutes);
 app.use("/api/villages", authenticateJWT, villageRoutes);
