@@ -1,0 +1,85 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id           String         @id @default(cuid())
+  name         String
+  slug         String         @unique
+  users        User[]
+  createdAt    DateTime       @default(now())
+  refreshToken RefreshToken[]
+}
+
+enum Role {
+  ADMIN
+  AGENT
+  SUPERVISEUR
+}
+
+model User {
+  id       String @id @default(cuid())
+  fullname String
+  email    String @unique
+  password String
+  role     Role
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime       @default(now())
+  refreshToken RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  tenantId  String
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model Region {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  departements Departement[]
+}
+
+model Departement {
+  id       String    @id @default(cuid())
+  name     String
+  regionId String
+  region   Region    @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  secteurs Secteur[]
+
+  @@unique([name, regionId]) // évite doublons dans la même région
+}
+
+model Secteur {
+  id            String      @id @default(cuid())
+  name          String
+  departementId String
+  departement   Departement @relation(fields: [departementId], references: [id], onDelete: Cascade)
+  villages      Village[]
+
+  @@unique([name, departementId])
+}
+
+model Village {
+  id        String  @id @default(cuid())
+  name      String
+  secteurId String
+  secteur   Secteur @relation(fields: [secteurId], references: [id], onDelete: Cascade)
+
+  @@unique([name, secteurId])
+}
