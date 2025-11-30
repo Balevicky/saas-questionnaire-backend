@@ -14,6 +14,10 @@ model Tenant {
   users        User[]
   createdAt    DateTime       @default(now())
   refreshToken RefreshToken[]
+  region Region[]
+  departements Departement[]
+  secteurs Secteur[]
+  villages Village[]
 }
 
 enum Role {
@@ -51,35 +55,54 @@ model RefreshToken {
 
 model Region {
   id           String        @id @default(cuid())
-  name         String        @unique
+  name         String
+  tenantId     String
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   departements Departement[]
+
+  @@unique([name, tenantId])
 }
 
 model Departement {
   id       String    @id @default(cuid())
   name     String
+
   regionId String
   region   Region    @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  tenantId String
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   secteurs Secteur[]
 
-  @@unique([name, regionId]) // évite doublons dans la même région
+  @@unique([name, regionId, tenantId])
 }
 
 model Secteur {
   id            String      @id @default(cuid())
   name          String
+
   departementId String
   departement   Departement @relation(fields: [departementId], references: [id], onDelete: Cascade)
-  villages      Village[]
 
-  @@unique([name, departementId])
+  tenantId String
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  villages Village[]
+
+  @@unique([name, departementId, tenantId])
 }
 
 model Village {
   id        String  @id @default(cuid())
   name      String
+
   secteurId String
   secteur   Secteur @relation(fields: [secteurId], references: [id], onDelete: Cascade)
 
-  @@unique([name, secteurId])
+  tenantId String
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([name, secteurId, tenantId])
 }
